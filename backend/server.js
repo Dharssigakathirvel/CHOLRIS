@@ -1,8 +1,34 @@
 const express = require('express');
 const cors = require('cors');
+const https = require('https');
 require('dotenv').config();
 
 const { computeDecisions } = require('./decisionEngine');
+
+/**
+ * HTTPS GET JSON helper with zero dependencies.
+ * Compatible with all Node versions and cloud environments.
+ */
+function httpGetJson(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { 'User-Agent': 'CHLORIS-Backend/1.0' } }, (res) => {
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        return reject(new Error(`HTTP ${res.statusCode}`));
+      }
+      let rawData = '';
+      res.on('data', (chunk) => { rawData += chunk; });
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(rawData));
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
+}
 
 const app = express();
 
@@ -273,12 +299,7 @@ app.get('/api/weather', async (req, res) => {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&hourly=precipitation_probability&forecast_days=1&timezone=auto`;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Open-Meteo returned HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await httpGetJson(url);
     const current = data.current || {};
     const hourly = data.hourly || {};
 
