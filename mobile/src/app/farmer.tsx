@@ -314,7 +314,13 @@ export default function FarmerScreen() {
                     },
                   ]}
                 >
-                  {cropHealth}
+                  {lang === 'ta'
+                    ? cropHealth === 'CRITICAL'
+                      ? t.critical
+                      : cropHealth === 'ATTENTION'
+                      ? t.attention
+                      : t.good
+                    : cropHealth}
                 </Text>
                 <Text style={styles.healthTamil}>
                   {cropHealth === 'CRITICAL'
@@ -358,20 +364,16 @@ export default function FarmerScreen() {
                   <Text style={styles.statusEmoji}>🐛</Text>
                 </View>
                 <Text style={styles.statusLabel}>{t.pestRisk}</Text>
-                <Text style={styles.statusValue}>
-                  {CVI >= 0.51 ? t.monitor : t.waterOk}
-                </Text>
+                <Text style={styles.statusValue}>{t.monitoring}</Text>
               </View>
 
-              {/* DISEASE */}
+              {/* DISEASE WATCH */}
               <View style={styles.statusCard}>
-                <View style={[styles.statusIcon, { backgroundColor: '#E7F3E8' }]}>
+                <View style={[styles.statusIcon, { backgroundColor: '#E8F4F8' }]}>
                   <Text style={styles.statusEmoji}>🍃</Text>
                 </View>
-                <Text style={styles.statusLabel}>{t.disease}</Text>
-                <Text style={styles.statusValue}>
-                  {CVI >= 0.51 ? t.monitor : t.waterOk}
-                </Text>
+                <Text style={styles.statusLabel}>{t.diseaseWatch}</Text>
+                <Text style={styles.statusValue}>{t.monitoring}</Text>
               </View>
             </View>
 
@@ -407,14 +409,16 @@ export default function FarmerScreen() {
 
               <View style={styles.recommendationContent}>
                 <Text style={styles.recommendationTitle}>
-                  {data.recommendation.primaryAction}
+                  {lang === 'ta' && data.recommendation.irrigationNeeded
+                    ? t.irrigationRecommended
+                    : data.recommendation.primaryAction}
                 </Text>
                 <Text style={styles.recommendationTamil}>
                   {data.recommendation.primaryActionTamil}
                 </Text>
                 <Text style={styles.recommendationText}>
                   {irrigationNeeded
-                    ? t.waterNeededBody
+                    ? t.waterNeededBody(data.sensors.moisture)
                     : cropHealth === 'CRITICAL'
                     ? t.criticalBody
                     : cropHealth === 'ATTENTION'
@@ -493,8 +497,7 @@ export default function FarmerScreen() {
                       {lang === 'ta' ? weatherData.conditionTamil : weatherData.condition}
                     </Text>
                     <Text style={styles.timestampText}>
-                      {lang === 'ta' ? 'கடைசியாக புதுப்பிக்கப்பட்டது: ' : 'Last updated: '}
-                      {formatRelativeTime(weatherData.timestamp, lang)}
+                      {t.lastUpdated}: {formatRelativeTime(weatherData.timestamp, lang)}
                     </Text>
                   </View>
                 </View>
@@ -502,21 +505,21 @@ export default function FarmerScreen() {
                 {/* METRICS ROW */}
                 <View style={styles.weatherMetricsRow}>
                   <View style={styles.metricItem}>
-                    <Text style={styles.metricLabel}>💧 {lang === 'ta' ? 'ஈரப்பதம்' : 'Humidity'}</Text>
+                    <Text style={styles.metricLabel}>💧 {t.humidity}</Text>
                     <Text style={styles.metricValue}>{weatherData.humidity}%</Text>
                   </View>
 
                   <View style={styles.metricDivider} />
 
                   <View style={styles.metricItem}>
-                    <Text style={styles.metricLabel}>🌧 {lang === 'ta' ? 'மழை வாய்ப்பு' : 'Rain chance'}</Text>
+                    <Text style={styles.metricLabel}>🌧 {t.rainChance}</Text>
                     <Text style={styles.metricValue}>{weatherData.rainProbability}%</Text>
                   </View>
 
                   <View style={styles.metricDivider} />
 
                   <View style={styles.metricItem}>
-                    <Text style={styles.metricLabel}>💨 {lang === 'ta' ? 'காற்றின் வேகம்' : 'Wind'}</Text>
+                    <Text style={styles.metricLabel}>💨 {t.wind}</Text>
                     <Text style={styles.metricValue}>
                       {weatherData.windSpeed} {lang === 'ta' ? 'கி.மீ/மணி' : 'km/h'}
                     </Text>
