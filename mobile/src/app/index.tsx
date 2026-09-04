@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { Language, TRANSLATIONS } from '../constants/translations';
+import { getSavedLanguage, saveLanguage } from '../utils/languageStorage';
 
 type Role = 'farmer' | 'admin';
 
@@ -19,27 +21,45 @@ export default function HomeScreen() {
   const [role, setRole] = useState<Role>('farmer');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [language, setLanguage] = useState<Language>('en');
 
-const handleLogin = () => {
-  console.log('LOGIN BUTTON PRESSED');
-  console.log('Role:', role);
-  console.log('Phone:', phone);
-  console.log('Password entered:', password.length > 0);
+  useEffect(() => {
+    getSavedLanguage().then((saved) => {
+      setLanguage(saved);
+    });
+  }, []);
 
-  if (!phone || !password) {
-    Alert.alert(
-      'Missing information',
-      'Please enter your phone number and password.'
-    );
-    return;
-  }
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    saveLanguage(lang);
+  };
 
-  if (role === 'farmer') {
-  router.push('/farmer');
-} else {
-  router.push('/admin');
-}
-};
+  const handleLogin = async () => {
+    console.log('LOGIN BUTTON PRESSED');
+    console.log('Role:', role);
+    console.log('Phone:', phone);
+    console.log('Language:', language);
+
+    if (!phone || !password) {
+      Alert.alert(
+        language === 'ta' ? 'தகவல் தேவை' : 'Missing information',
+        language === 'ta'
+          ? 'உங்கள் தொலைபேசி எண் மற்றும் கடவுச்சொல்லை உள்ளிடவும்.'
+          : 'Please enter your phone number and password.'
+      );
+      return;
+    }
+
+    await saveLanguage(language);
+
+    if (role === 'farmer') {
+      router.push('/farmer');
+    } else {
+      router.push('/admin');
+    }
+  };
+
+  const t = TRANSLATIONS[language];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -63,17 +83,63 @@ const handleLogin = () => {
 
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeTitle}>
-              Welcome back
+              {language === 'ta' ? 'நல்வரவு' : 'Welcome back'}
             </Text>
 
             <Text style={styles.welcomeSubtitle}>
-              Sign in to monitor your field and crop health.
+              {language === 'ta'
+                ? 'உங்கள் வயல் மற்றும் பயிர் நிலையை கண்காணிக்க உள்நுழையவும்.'
+                : 'Sign in to monitor your field and crop health.'}
             </Text>
           </View>
 
+          {/* LANGUAGE PREFERENCE SECTION */}
+          <View style={styles.languageContainer}>
+            <Text style={styles.sectionLabel}>
+              {t.languagePrompt.toUpperCase()}
+            </Text>
+
+            <View style={styles.languageRow}>
+              <Pressable
+                style={[
+                  styles.languageButton,
+                  language === 'en' && styles.languageButtonActive,
+                ]}
+                onPress={() => handleLanguageChange('en')}
+              >
+                <Text
+                  style={[
+                    styles.languageButtonText,
+                    language === 'en' && styles.languageButtonTextActive,
+                  ]}
+                >
+                  English 🇬🇧
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.languageButton,
+                  language === 'ta' && styles.languageButtonActive,
+                ]}
+                onPress={() => handleLanguageChange('ta')}
+              >
+                <Text
+                  style={[
+                    styles.languageButtonText,
+                    language === 'ta' && styles.languageButtonTextActive,
+                  ]}
+                >
+                  தமிழ் 🇮🇳
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* ROLE CONTAINER */}
           <View style={styles.roleContainer}>
             <Text style={styles.sectionLabel}>
-              LOGIN AS
+              {language === 'ta' ? 'உள்நுழைவு வகை' : 'LOGIN AS'}
             </Text>
 
             <View style={styles.roleRow}>
@@ -93,11 +159,11 @@ const handleLogin = () => {
                       role === 'farmer' && styles.roleTitleActive,
                     ]}
                   >
-                    Farmer
+                    {language === 'ta' ? 'விவசாயி' : 'Farmer'}
                   </Text>
 
                   <Text style={styles.roleDescription}>
-                    Simple field insights
+                    {language === 'ta' ? 'எளிய வயல் விவரங்கள்' : 'Simple field insights'}
                   </Text>
                 </View>
               </Pressable>
@@ -122,21 +188,22 @@ const handleLogin = () => {
                   </Text>
 
                   <Text style={styles.roleDescription}>
-                    Detailed monitoring
+                    {language === 'ta' ? 'விரிவான கண்காணிப்பு' : 'Detailed monitoring'}
                   </Text>
                 </View>
               </Pressable>
             </View>
           </View>
 
+          {/* FORM */}
           <View style={styles.form}>
             <Text style={styles.inputLabel}>
-              Phone Number
+              {language === 'ta' ? 'தொலைபேசி எண்' : 'Phone Number'}
             </Text>
 
             <TextInput
               style={styles.input}
-              placeholder="Enter your phone number"
+              placeholder={language === 'ta' ? 'தொலைபேசி எண்ணை உள்ளிடவும்' : 'Enter your phone number'}
               placeholderTextColor="#8A8F98"
               keyboardType="phone-pad"
               value={phone}
@@ -144,12 +211,12 @@ const handleLogin = () => {
             />
 
             <Text style={styles.inputLabel}>
-              Password
+              {language === 'ta' ? 'கடவுச்சொல்' : 'Password'}
             </Text>
 
             <TextInput
               style={styles.input}
-              placeholder="Enter your password"
+              placeholder={language === 'ta' ? 'கடவுச்சொல்லை உள்ளிடவும்' : 'Enter your password'}
               placeholderTextColor="#8A8F98"
               secureTextEntry
               value={password}
@@ -159,13 +226,13 @@ const handleLogin = () => {
             <Pressable
               onPress={() =>
                 Alert.alert(
-                  'Coming soon',
-                  'Password recovery will be added later.'
+                  language === 'ta' ? 'விரைவில்' : 'Coming soon',
+                  language === 'ta' ? 'கடவுச்சொல் மீட்பு விரைவில் சேர்க்கப்படும்.' : 'Password recovery will be added later.'
                 )
               }
             >
               <Text style={styles.forgotPassword}>
-                Forgot password?
+                {language === 'ta' ? 'கடவுச்சொல் மறந்துவிட்டதா?' : 'Forgot password?'}
               </Text>
             </Pressable>
 
@@ -174,7 +241,7 @@ const handleLogin = () => {
               onPress={handleLogin}
             >
               <Text style={styles.loginButtonText}>
-                LOGIN
+                {language === 'ta' ? 'உள்நுழைக' : 'LOGIN'}
               </Text>
 
               <Text style={styles.arrow}>
@@ -251,8 +318,8 @@ const styles = StyleSheet.create({
   },
 
   welcomeSection: {
-    marginTop: 42,
-    marginBottom: 24,
+    marginTop: 32,
+    marginBottom: 20,
   },
 
   welcomeTitle: {
@@ -266,6 +333,41 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: '#68716A',
     marginTop: 7,
+  },
+
+  languageContainer: {
+    marginBottom: 20,
+  },
+
+  languageRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+
+  languageButton: {
+    flex: 1,
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DCE3DD',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  languageButtonActive: {
+    borderColor: '#2F6B45',
+    backgroundColor: '#EAF3EC',
+  },
+
+  languageButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#49524B',
+  },
+
+  languageButtonTextActive: {
+    color: '#245A38',
   },
 
   roleContainer: {

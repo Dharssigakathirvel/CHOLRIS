@@ -6,6 +6,7 @@ import {
   View,
   Pressable,
 } from 'react-native';
+import { API_ENDPOINTS } from '../constants/api';
 import { router } from 'expo-router';
 
 // ---------------------------------------------------------------------------
@@ -64,7 +65,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     console.log('[Admin] Fetching /api/decisions ...');
 
-    fetch('http://localhost:5000/api/decisions')
+    fetch(API_ENDPOINTS.decisions)
       .then((response) => {
         console.log('[Admin] Response status:', response.status);
         return response.json();
@@ -299,7 +300,7 @@ export default function AdminDashboard() {
             ⚠️ Backend Unreachable
           </Text>
           <Text style={styles.alertText}>
-            Could not connect to /api/decisions. Ensure the backend is running on port 5000.
+            Could not reach the CHLORIS backend. The server may be waking up — please try again in 30 seconds.
           </Text>
         </View>
       )}
